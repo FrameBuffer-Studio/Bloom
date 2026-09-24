@@ -1,0 +1,10 @@
+[package]
+name = "FrameBuffer/Bloom"
+authors = ["onedps"]
+description = "Blossom with possibilities. Predictable API, high performance, and no limitations."
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+license = "Apache 2.0"
+
+[dependencies]
