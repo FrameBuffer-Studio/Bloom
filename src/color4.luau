@@ -68,6 +68,72 @@ Color4.New32Bit = function(R: number, G: number, B: number, A: number): number
 end
 
 --[=[
+	<strong>Bloom/Color4/SetR</strong>
+
+	Overwrtie the R channel within the number.
+
+	@param color number -- 32-bit number represent of RGBA color.
+	@param val number -- Value of overwrited color channel.
+
+	@return number -- Overwrited color.
+]=]
+Color4.SetR = function(color: number, val: number): number
+	return bit32.bor(color, val)
+end
+
+--[=[
+	<strong>Bloom/Color4/SetG</strong>
+
+	Overwrtie the G channel within the number.
+
+	@param color number -- 32-bit number represent of RGBA color.
+	@param val number -- Value of overwrited color channel.
+
+	@return number -- Overwrited color.
+]=]
+Color4.SetG = function(color: number, val: number): number
+	return bit32.bor(
+		color,
+		bit32.bor(bit32.band(color, 0xFF00FFFF)),
+		bit32.lshift(val, 8)
+	)
+end
+
+--[=[
+	<strong>Bloom/Color4/SetB</strong>
+
+	Overwrtie the B channel within the number.
+
+	@param color number -- 32-bit number represent of RGBA color.
+	@param val number -- Value of overwrited color channel.
+
+	@return number -- Overwrited color.
+]=]
+Color4.SetB = function(color: number, val: number): number
+	return bit32.bor(
+		bit32.band(color, 0xFFFF00FF),
+		bit32.lshift(val, 16)
+	)
+end
+
+--[=[
+	<strong>Bloom/Color4/SetA</strong>
+
+	Overwrtie the A channel within the number.
+
+	@param color number -- 32-bit number represent of RGBA color.
+	@param val number -- Value of overwrited color channel.
+
+	@return number -- Overwrited color.
+]=]
+Color4.SetA = function(color: number, val: number): number
+	return bit32.bor(
+		bit32.band(color, 0x00FFFFFF),
+		bit32.lshift(val, 24)
+	)
+end
+
+--[=[
 	<strong>Bloom/Color4/To32Bit</strong>
 
 	Convert `Color4` to 32-bit number.
