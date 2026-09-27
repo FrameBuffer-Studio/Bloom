@@ -1,24 +1,15 @@
-local function extend(target, ...)
-    for _, source in ipairs({...}) do
-        for key, value in pairs(source) do
-            if type(value) == "function" then
-                target[key] = value
-            end
-        end
-    end
+const elements = require("@self/elements")
 
-    return target
+local bloom = {}
+bloom.__index = bloom
+
+bloom.Create = function(editable_image: EditableImage, holder: ImageLabel)
+
 end
 
-const w = require("@self/elements")
+bloom.FromResolution = function(resolution: Vector2)
+
+end
 
 
-
-
-
-local module = {}
-
-
-
-
-return module
+return bloom

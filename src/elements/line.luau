@@ -73,5 +73,18 @@ return {
                 y0 = y0 + sy
             end
         end
+    end,
+
+    DrawHorizontalLine = function(self, x: number, x_end: number, y: number, color32: number): ()
+        if y < 1 or y >= self.res_y then return end
+
+        if x > x_end then x, x_end = x_end, x end
+        if x < 1 then x = 1 end
+        if x_end >= self.res_x then x_end = self.res_x - 1 end
+
+        local count = (x_end - x) + 1
+        if count <= 0 then return end
+
+        buffer.fill(self.pixel_buffer, (y * self.res_x + x) * 4, color32, count * 4)
     end
 }

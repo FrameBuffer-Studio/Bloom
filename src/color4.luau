@@ -35,7 +35,7 @@ export type Color4 = {
 
 	@within Color4
 
-	@return `Color4`
+	@return Color4
 ]=]
 Color4.New = function(R: number, G: number, B: number, A: number): Color4
 	local self = setmetatable({}, Color4)
@@ -174,7 +174,7 @@ end
 
 	@within Color4
 
-	@return `Color4`
+	@return Color4
 ]=]
 Color4.From32Bit = function(hex: number): Color4
 	return Color4.New(
@@ -195,7 +195,7 @@ end
 
 	@within Color4
 
-	@return `Color4`
+	@return Color4
 ]=]
 Color4.FromColor3 = function(color: Color3, alpha: number): Color4
 	local self = setmetatable({}, Color4)
@@ -219,7 +219,7 @@ end
 
 	@within Color4
 
-	@return `Color4`
+	@return Color4
 ]=]
 Color4.Lerp = function(self: Color4, other: Color4, t: number): Color4
 	t = math.clamp(t, 0, 1)
