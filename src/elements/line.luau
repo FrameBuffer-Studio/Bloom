@@ -1,4 +1,5 @@
 const pixel = require("./pixel")
+const color4 = require("../color4")
 
 return {
     DrawLine = function(self, x0: number, y0: number, x1: number, y1: number, color32: number): ()
@@ -35,7 +36,7 @@ return {
         thickness = (thickness + 1) / 2
 
         while true do
-            pixel.DrawPixel(self, x0, y0, math.max(0, 255 * (math.abs(err - dx + dy) / ed - thickness + 1)))
+            pixel.DrawPixel(self, x0, y0, color4.SetA(color32, math.max(0, 255 * (math.abs(err - dx + dy) / ed - thickness + 1))))
 
             e2 = err
             x2 = x0
@@ -46,7 +47,7 @@ return {
 
                 while e2 < ed * thickness and (y1 ~= y2 or dx > dy) do
                     y2 = y2 + sy
-                    pixel.DrawPixel(self, x0, y2, math.max(0, 255 * (math.abs(e2) / ed - thickness + 1)))
+                    pixel.DrawPixel(self, x0, y2, color4.SetA(color32, math.max(0, 255 * (math.abs(e2) / ed - thickness + 1))))
                     e2 = e2 + dx
                 end
 
@@ -62,7 +63,7 @@ return {
 
                 while e2 < ed * thickness and (x1 ~= x2 or dx < dy) do
                     x2 = x2 + sx
-                    pixel.DrawPixel(self, x2, y0, math.max(0, 255 * (math.abs(e2) / ed - thickness + 1)))
+                    pixel.DrawPixel(self, x2, y0, color4.SetA(color32, math.max(0, 255 * (math.abs(e2) / ed - thickness + 1))))
                     e2 = e2 + dy
                 end
 
