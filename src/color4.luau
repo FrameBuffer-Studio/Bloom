@@ -33,6 +33,8 @@ export type Color4 = {
 	@param B number -- Blue.
 	@param A number -- Alpha.
 
+	@within Color4
+
 	@return `Color4`
 ]=]
 Color4.New = function(R: number, G: number, B: number, A: number): Color4
@@ -56,6 +58,8 @@ end
 	@param B number -- Blue.
 	@param A number -- Alpha.
 
+	@within Color4
+
 	@return number -- 32-bit number represent of RGBA color.
 ]=]
 Color4.New32Bit = function(R: number, G: number, B: number, A: number): number
@@ -75,6 +79,8 @@ end
 	@param color number -- 32-bit number represent of RGBA color.
 	@param val number -- Value of overwrited color channel.
 
+	@within Color4
+
 	@return number -- Overwrited color.
 ]=]
 Color4.SetR = function(color: number, val: number): number
@@ -88,6 +94,8 @@ end
 
 	@param color number -- 32-bit number represent of RGBA color.
 	@param val number -- Value of overwrited color channel.
+
+	@within Color4
 
 	@return number -- Overwrited color.
 ]=]
@@ -107,6 +115,8 @@ end
 	@param color number -- 32-bit number represent of RGBA color.
 	@param val number -- Value of overwrited color channel.
 
+	@within Color4
+
 	@return number -- Overwrited color.
 ]=]
 Color4.SetB = function(color: number, val: number): number
@@ -124,6 +134,8 @@ end
 	@param color number -- 32-bit number represent of RGBA color.
 	@param val number -- Value of overwrited color channel.
 
+	@within Color4
+
 	@return number -- Overwrited color.
 ]=]
 Color4.SetA = function(color: number, val: number): number
@@ -139,6 +151,8 @@ end
 	Convert `Color4` to 32-bit number.
 
 	@param self
+
+	@within Color4
 
 	@return number -- 32-bit number represent of RGBA color.
 ]=]
@@ -158,6 +172,8 @@ end
 
 	@param hex number -- 32-bit number represent of RGBA color.
 
+	@within Color4
+
 	@return `Color4`
 ]=]
 Color4.From32Bit = function(hex: number): Color4
@@ -176,6 +192,8 @@ end
 
 	@param color Color3
 	@param alpha number -- Alpha of color.
+
+	@within Color4
 
 	@return `Color4`
 ]=]
@@ -199,6 +217,8 @@ end
 	@param other Color4 -- second color to interpolate
 	@param t number
 
+	@within Color4
+
 	@return `Color4`
 ]=]
 Color4.Lerp = function(self: Color4, other: Color4, t: number): Color4
@@ -212,6 +232,8 @@ Color4.Lerp = function(self: Color4, other: Color4, t: number): Color4
 	)
 end
 
+--- @prop Zero Color4
+--- @within Color4
 --- Full transparent color or just 0.
 Color4.Zero = 0
 
