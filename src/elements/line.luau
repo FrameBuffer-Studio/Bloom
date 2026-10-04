@@ -75,6 +75,18 @@ return {
         end
     end,
 
+    --[=[
+        <strong>Bloom/Line/DrawHorizontalLine</strong>
+
+        Draw horizontal line at `x` and `y` to `x_end` and `y`.
+
+        @param x number -- Point by X-coordinate.
+        @param x_end number -- Point by X-coordinate.
+        @param y number -- Point by Y-coordinate.
+        @param color32 number -- 32-bit number represent of RGBA color.
+
+        @error nil -- If y < 1 or y >= self.res_y.
+    ]=]
     DrawHorizontalLine = function(self, x: number, x_end: number, y: number, color32: number): ()
         if y < 1 or y >= self.res_y then return end
 

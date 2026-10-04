@@ -4,9 +4,9 @@
 
 return {
     --[=[
-        <strong>Bloom/Pixel/Write</strong>
+        <strong>Bloom/Pixel/Draw</strong>
 
-        Write a pixel to pixel buffer at coordinates X and Y.
+        Draw pixel at coordinates X and Y.
 
         @param x number -- Point by X-coordinate.
         @param y number -- Point by Y-coordinate.
@@ -37,9 +37,9 @@ return {
     end,
 
     --[=[
-        <strong>Bloom/Pixel/WriteUnsafe</strong>
+        <strong>Bloom/Pixel/DrawUnsafe</strong>
 
-        Write a pixel to pixel buffer at coordinates X and Y, without bounds checking.
+        Draw pixel at coordinates X and Y, without bounds checking.
 
         @param x number -- Point by X-coordinate.
         @param y number -- Point by Y-coordinate.
