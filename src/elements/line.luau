@@ -1,7 +1,18 @@
-const pixel = require("./pixel")
-const color4 = require("../color4")
+local pixel = require("./pixel")
+local color4 = require("../color4")
 
 return {
+    --[=[
+        <strong>Bloom/Line/DrawLine</strong>
+
+        Draw bresenham line at `x0` and `y0` to `x1` and `y1`.
+
+        @param x0 number -- Point by X-coordinate.
+        @param y0 number -- Point by Y-coordinate.
+        @param x1 number -- Point by X-coordinate.
+        @param y1 number -- Point by Y-coordinate.
+        @param color32 number -- 32-bit number represent of RGBA color.
+    ]=]
     DrawLine = function(self, x0: number, y0: number, x1: number, y1: number, color32: number): ()
         local dx, dy = math.abs(x1 - x0), -math.abs(y1 - y0)
         local sx, sy = (x0 < x1) and 1 or -1, (y0 < y1) and 1 or -1
@@ -25,6 +36,17 @@ return {
         end
     end,
 
+    --[=[
+        <strong>Bloom/Line/DrawLineAA</strong>
+
+        Draw anti-aliased line at `x0` and `y0` to `x1` and `y1`.
+
+        @param x0 number -- Point by X-coordinate.
+        @param y0 number -- Point by Y-coordinate.
+        @param x1 number -- Point by X-coordinate.
+        @param y1 number -- Point by Y-coordinate.
+        @param color32 number -- 32-bit number represent of RGBA color.
+    ]=]
     DrawLineAA = function(self, x0: number, y0: number, x1: number, y1: number, thickness: number, color32: number): ()
         local dx, dy = math.abs(x1 - x0), math.abs(y1 - y0)
         local sx, sy = x0 < x1 and 1 or -1, y0 < y1 and 1 or -1
@@ -78,25 +100,36 @@ return {
     --[=[
         <strong>Bloom/Line/DrawHorizontalLine</strong>
 
-        Draw horizontal line at `x` and `y` to `x_end` and `y`.
+        Draw horizontal line at `x0` and `y0` to `x1` and `y0`.
 
-        @param x number -- Point by X-coordinate.
-        @param x_end number -- Point by X-coordinate.
-        @param y number -- Point by Y-coordinate.
+        @param x0 number -- Point by X-coordinate.
+        @param y0 number -- Point by Y-coordinate.
+        @param x1 number -- Point by X-coordinate.
         @param color32 number -- 32-bit number represent of RGBA color.
-
-        @error nil -- If y < 1 or y >= self.res_y.
     ]=]
-    DrawHorizontalLine = function(self, x: number, x_end: number, y: number, color32: number): ()
-        if y < 1 or y >= self.res_y then return end
+    DrawHorizontalLine = function(self, x0: number, y0: number, x1: number, color32: number): ()
+        local sx = (x0 < x1) and 1 or -1
 
-        if x > x_end then x, x_end = x_end, x end
-        if x < 1 then x = 1 end
-        if x_end >= self.res_x then x_end = self.res_x - 1 end
+        for x = x0, x1 do
+            pixel.DrawPixel(self, x, y0, color32)
+        end
+    end,
 
-        local count = (x_end - x) + 1
-        if count <= 0 then return end
+    --[=[
+        <strong>Bloom/Line/DrawVerticalLine</strong>
 
-        buffer.fill(self.pixel_buffer, (y * self.res_x + x) * 4, color32, count * 4)
+        Draw horizontal line at `x0` and `y0` to `x1` and `y0`.
+
+        @param x0 number -- Point by X-coordinate.
+        @param y0 number -- Point by Y-coordinate.
+        @param y1 number -- Point by Y-coordinate.
+        @param color32 number -- 32-bit number represent of RGBA color.
+    ]=]
+    DrawVerticalLine = function(self, x0: number, y0: number, y1: number, color32: number): ()
+        if y0 > y1 then y0, y1 = y1, y0 end
+
+        for y = y0, y1 do
+            pixel.DrawPixel(self, x0, y, color32)
+        end
     end
 }

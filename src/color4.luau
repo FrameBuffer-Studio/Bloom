@@ -84,7 +84,10 @@ end
 	@return number -- Overwrited color.
 ]=]
 Color4.SetR = function(color: number, val: number): number
-	return bit32.bor(color, val)
+	return bit32.bor(
+		bit32.band(color, 0xFFFFFF00),
+		bit32.band(val, 0xFF)
+	)
 end
 
 --[=[
@@ -101,9 +104,8 @@ end
 ]=]
 Color4.SetG = function(color: number, val: number): number
 	return bit32.bor(
-		color,
-		bit32.bor(bit32.band(color, 0xFF00FFFF)),
-		bit32.lshift(val, 8)
+		bit32.band(color, 0xFF00FFFF),
+		bit32.lshift(bit32.band(val, 0xFF), 8)
 	)
 end
 
@@ -122,7 +124,7 @@ end
 Color4.SetB = function(color: number, val: number): number
 	return bit32.bor(
 		bit32.band(color, 0xFFFF00FF),
-		bit32.lshift(val, 16)
+		bit32.lshift(bit32.band(val, 0xFF), 16)
 	)
 end
 
@@ -141,7 +143,7 @@ end
 Color4.SetA = function(color: number, val: number): number
 	return bit32.bor(
 		bit32.band(color, 0x00FFFFFF),
-		bit32.lshift(val, 24)
+		bit32.lshift(bit32.band(val, 0xFF), 24)
 	)
 end
 
