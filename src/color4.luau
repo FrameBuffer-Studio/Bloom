@@ -1,3 +1,14 @@
+--[[
+	██████╗ ██╗      ██████╗  ██████╗ ███╗   ███╗
+	██╔══██╗██║     ██╔═══██╗██╔═══██╗████╗ ████║
+	██████╔╝██║     ██║   ██║██║   ██║██╔████╔██║
+	██╔══██╗██║     ██║   ██║██║   ██║██║╚██╔╝██║
+	██████╔╝███████╗╚██████╔╝╚██████╔╝██║ ╚═╝ ██║
+	╚═════╝ ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝     ╚═╝
+
+	Low-level graphics library for EditableImage
+]]
+
 --!strict
 --!native
 --!optimize 2
@@ -92,7 +103,10 @@ end
 	@return (number, number, number, number) -- Red, green, blue, alpha.
 ]=]
 Color4.Unpack = function(color: number): (number, number, number, number)
-	return bit32.extract(color, 0, 8), bit32.extract(color, 8, 8), bit32.extract(color, 16, 8), bit32.extract(color, 24, 8)
+	return bit32.extract(color, 0, 8),
+		bit32.extract(color, 8, 8),
+		bit32.extract(color, 16, 8),
+		bit32.extract(color, 24, 8)
 end
 
 --[=[

@@ -1,3 +1,14 @@
+--[[
+	██████╗ ██╗      ██████╗  ██████╗ ███╗   ███╗
+	██╔══██╗██║     ██╔═══██╗██╔═══██╗████╗ ████║
+	██████╔╝██║     ██║   ██║██║   ██║██╔████╔██║
+	██╔══██╗██║     ██║   ██║██║   ██║██║╚██╔╝██║
+	██████╔╝███████╗╚██████╔╝╚██████╔╝██║ ╚═╝ ██║
+	╚═════╝ ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝     ╚═╝
+
+	Low-level graphics library for EditableImage
+]]
+
 --!strict
 
 -- Packed RGBA, little-endian: 0xAABBGGRR. Matches the byte order of EditableImage buffers.
