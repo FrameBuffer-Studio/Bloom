@@ -5,7 +5,7 @@
 --[=[
 	@class Shader
 
-	CPU pixel shader. The callback runs once per pixel and returns a packed RGBA color,
+	Pixel shader. The callback runs once per pixel and returns a packed RGBA color,
 	or `nil` to keep the input pixel. This is not a GPU shader: keep callbacks small and
 	allocation-free, and apply them to the smallest rectangle possible.
 ]=]
@@ -144,7 +144,6 @@ shader.Apply = function(
 	local u_scale = if width > 1 then 1 / (width - 1) else 0
 	local v_scale = if height > 1 then 1 / (height - 1) else 0
 
-	-- Marked before the loop so a throwing callback cannot leave modified pixels untracked.
 	context:_MarkDirtyRect(left, top, right, bottom)
 
 	for y = top, bottom do

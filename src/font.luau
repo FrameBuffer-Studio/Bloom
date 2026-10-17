@@ -48,7 +48,8 @@ type FontFile = {
 	cmap: CmapInfo,
 }
 
-local DEFAULT_CHARSET = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+local DEFAULT_CHARSET =
+	" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 local QUESTION_MARK = 63
 local NEWLINE = 10
 local TAB = 9
@@ -63,11 +64,9 @@ local CURVE_SEGMENTS = 6
 local MAX_COMPOSITE_DEPTH = 8
 local WHITE_RGB = 0x00FFFFFF
 
--- TrueType signatures: 0x00010000 (Windows/OpenType) and 'true' (Apple).
 local SFNT_VERSION_TRUETYPE = 0x00010000
 local SFNT_VERSION_APPLE = 0x74727565
 
--- Simple glyph flags (OpenType 'glyf' table).
 local FLAG_ON_CURVE = 0x01
 local FLAG_X_SHORT = 0x02
 local FLAG_Y_SHORT = 0x04
@@ -75,7 +74,6 @@ local FLAG_REPEAT = 0x08
 local FLAG_X_SAME_OR_POSITIVE = 0x10
 local FLAG_Y_SAME_OR_POSITIVE = 0x20
 
--- Composite glyph flags.
 local COMPOSITE_ARGS_ARE_WORDS = 0x0001
 local COMPOSITE_ARGS_ARE_XY = 0x0002
 local COMPOSITE_HAS_SCALE = 0x0008
@@ -85,8 +83,6 @@ local COMPOSITE_HAS_2X2 = 0x0080
 
 local font = {}
 font.__index = font
-
--- Binary readers (TrueType data is big-endian; buffer reads are little-endian) ---------
 
 local function read_u16(data: buffer, offset: number): number
 	return bit32.bor(bit32.lshift(buffer.readu8(data, offset), 8), buffer.readu8(data, offset + 1))
@@ -112,8 +108,6 @@ local function require_range(data: buffer, offset: number, length: number, label
 		"Invalid or truncated TrueType font: " .. label
 	)
 end
-
--- Font file parsing --------------------------------------------------------------------
 
 local function read_table_directory(data: buffer): { [string]: TableEntry }
 	require_range(data, 0, 12, "sfnt header")
@@ -198,8 +192,6 @@ local function parse_font(data: buffer): FontFile
 	return file
 end
 
--- Character to glyph mapping -----------------------------------------------------------
-
 local function lookup_format12(data: buffer, cmap: CmapInfo, codepoint: number): number
 	local low, high = 0, read_u32(data, cmap.offset + 12) - 1
 
@@ -265,9 +257,6 @@ local function glyph_index_for(file: FontFile, codepoint: number): number
 	return lookup_format4(file.data, file.cmap, codepoint)
 end
 
--- Glyph data ---------------------------------------------------------------------------
-
--- Returns the absolute byte offset of a glyph's outline, or nil for empty glyphs.
 local function glyph_offset(file: FontFile, glyph_index: number): number?
 	if glyph_index < 0 or glyph_index >= file.glyph_count then
 		return nil
@@ -298,7 +287,6 @@ local function horizontal_metrics(file: FontFile, glyph_index: number): (number,
 		return read_u16(data, record), read_i16(data, record + 2)
 	end
 
-	-- Glyphs past the last full record reuse its advance and store only a bearing.
 	local advance = read_u16(data, hmtx.offset + (metric_count - 1) * 4)
 	local bearing = read_i16(data, hmtx.offset + metric_count * 4 + (glyph_index - metric_count) * 2)
 	return advance, bearing
@@ -335,7 +323,6 @@ local function read_flags(data: buffer, cursor: number, point_count: number): ({
 	return flags, cursor
 end
 
--- Reads one coordinate axis of a simple glyph; coordinates are stored as deltas.
 local function read_coordinates(
 	data: buffer,
 	cursor: number,
@@ -383,7 +370,7 @@ local function read_simple_glyph(data: buffer, base: number, contour_count: numb
 	local contours: { Contour } = table.create(contour_count)
 	local first_point = 1
 	for _, end_point in end_points do
-		local last_point = end_point + 1 -- end points are 0-based
+		local last_point = end_point + 1
 		local contour: Contour = table.create(last_point - first_point + 1)
 
 		for point = first_point, last_point do
@@ -427,7 +414,6 @@ local function read_composite_glyph(file: FontFile, base: number, depth: number)
 			cursor += 2
 		end
 
-		-- Transform matrix: x' = a*x + c*y + dx, y' = b*x + d*y + dy (OpenType 'glyf' spec).
 		local a, b, c, d = 1, 0, 0, 1
 		if bit32.btest(flags, COMPOSITE_HAS_SCALE) then
 			a = read_f2dot14(data, cursor)
@@ -442,7 +428,6 @@ local function read_composite_glyph(file: FontFile, base: number, depth: number)
 			cursor += 8
 		end
 
-		-- Point-matched components (args are point indices) are uncommon and skipped.
 		if bit32.btest(flags, COMPOSITE_ARGS_ARE_XY) then
 			for _, child in read_outline(file, component_index, depth + 1) do
 				local transformed: Contour = table.create(#child)
@@ -476,8 +461,6 @@ function read_outline(file: FontFile, glyph_index: number, depth: number): { Con
 	return {}
 end
 
--- Rasterization ------------------------------------------------------------------------
-
 local function append_quadratic(from: Point, control: Point, to: Point, output: { Point }): ()
 	for step = 1, CURVE_SEGMENTS do
 		local t = step / CURVE_SEGMENTS
@@ -494,7 +477,6 @@ local function midpoint(a: Point, b: Point): Point
 	return { x = (a.x + b.x) * 0.5, y = (a.y + b.y) * 0.5, on = true }
 end
 
--- Flattens a TrueType contour (on-curve points and quadratic control points) into a closed polygon.
 local function contour_to_polygon(contour: Contour): { Point }
 	local count = #contour
 	local polygon: { Point } = {}
@@ -539,7 +521,6 @@ local function contour_to_polygon(contour: Contour): { Point }
 	return polygon
 end
 
--- Non-zero winding number of a closed polygon around (x, y); TrueType uses the non-zero fill rule.
 local function winding_number(x: number, y: number, polygon: { Point }): number
 	local winding = 0
 	local previous = polygon[#polygon]
@@ -569,7 +550,6 @@ local function is_inside(x: number, y: number, polygons: { { Point } }): boolean
 	return winding ~= 0
 end
 
--- Renders one glyph into the atlas with 2x2 supersampling. Pixels are white; coverage goes into alpha.
 local function rasterize_glyph(
 	atlas: buffer,
 	atlas_width: number,
@@ -615,7 +595,6 @@ local function unique_codepoints(charset: string): { number }
 		end
 	end
 
-	-- The default fallback glyph is always available.
 	if not seen[QUESTION_MARK] then
 		table.insert(codepoints, QUESTION_MARK)
 	end
@@ -644,7 +623,6 @@ local function build_atlas(data: buffer, pixel_size: number, charset: string): (
 		local advance, bearing = horizontal_metrics(file, glyph_index)
 		local x_min, y_min, x_max, y_max = glyph_bounds(file, glyph_index)
 
-		-- 0-based top-left of the drawable area inside this glyph's cell.
 		local cell_x = ((position - 1) % columns) * cell_width + GLYPH_PADDING
 		local cell_y = ((position - 1) // columns) * cell_height + GLYPH_PADDING
 		local width = math.clamp(math.ceil((x_max - x_min) * scale), 0, cell_width - 2 * GLYPH_PADDING)
@@ -657,7 +635,7 @@ local function build_atlas(data: buffer, pixel_size: number, charset: string): (
 		rasterize_glyph(atlas, atlas_width, cell_x, cell_y, width, height, polygons, x_min, y_max, scale)
 
 		glyphs[codepoint] = {
-			x = cell_x + 1, -- Glyph rectangles use 1-based texture coordinates.
+			x = cell_x + 1,
 			y = cell_y + 1,
 			width = width,
 			height = height,
@@ -669,8 +647,6 @@ local function build_atlas(data: buffer, pixel_size: number, charset: string): (
 
 	return texture_module.New(atlas_width, atlas_height, atlas, false), glyphs, line_height
 end
-
--- Construction -------------------------------------------------------------------------
 
 --[=[
 	Creates a bitmap font from a texture atlas and glyph metrics.
@@ -752,8 +728,6 @@ font.Destroy = function(self: Font): ()
 		self.texture:Destroy()
 	end
 end
-
--- Text layout --------------------------------------------------------------------------
 
 local function glyph_advance(glyph: Glyph): number
 	return glyph.xadvance or glyph.width

@@ -7,7 +7,6 @@ type Context = Types.self
 
 local rect = {}
 
--- Returns a buffer holding one row of `width` pixels of `color32`, reusing the previous one when possible.
 local function get_row(context: Context, width: number, color32: number): buffer
 	local row = context._rect_row_buffer
 	if row ~= nil and context._rect_row_width == width and context._rect_row_color == color32 then

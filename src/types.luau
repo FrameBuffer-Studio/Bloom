@@ -1,13 +1,5 @@
 --!strict
 
---[[
-	Shared structural types for Bloom.
-
-	Every module imports from here instead of from each other, which keeps the
-	dependency graph acyclic and lets primitives accept the context without
-	requiring `init.luau`.
-]]
-
 -- Packed RGBA, little-endian: 0xAABBGGRR. Matches the byte order of EditableImage buffers.
 export type PackedColor = number
 
@@ -278,7 +270,15 @@ export type self = {
 		height: number?,
 		options: TextureDrawOptions?
 	) -> (),
-	ApplyShader: (self: self, shader: ShaderLike, x0: number, y0: number, x1: number, y1: number, uniforms: Uniforms?) -> number,
+	ApplyShader: (
+		self: self,
+		shader: ShaderLike,
+		x0: number,
+		y0: number,
+		x1: number,
+		y1: number,
+		uniforms: Uniforms?
+	) -> number,
 	DrawText: (
 		self: self,
 		font: FontLike,
@@ -291,7 +291,15 @@ export type self = {
 	DrawHorizontalLine: (self: self, x0: number, y: number, x1: number, color32: PackedColor) -> (),
 	DrawVerticalLine: (self: self, x: number, y0: number, y1: number, color32: PackedColor) -> (),
 	DrawLine: (self: self, x0: number, y0: number, x1: number, y1: number, color32: PackedColor) -> (),
-	DrawLineAA: (self: self, x0: number, y0: number, x1: number, y1: number, thickness: number, color32: PackedColor) -> (),
+	DrawLineAA: (
+		self: self,
+		x0: number,
+		y0: number,
+		x1: number,
+		y1: number,
+		thickness: number,
+		color32: PackedColor
+	) -> (),
 	DrawPixel: (self: self, x: number, y: number, color32: PackedColor) -> (),
 	DrawPixelUnsafe: (self: self, x: number, y: number, color32: PackedColor) -> (),
 	ReadPixel: (self: self, x: number, y: number) -> PackedColor,

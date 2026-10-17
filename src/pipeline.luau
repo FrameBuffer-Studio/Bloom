@@ -52,8 +52,8 @@ local function remove_stage(self: Pipeline, name: string): boolean
 end
 
 local function run_stage(stage: Stage, context: any, phase: Phase): ()
-	-- Cast: the callback returns nothing, but pcall also yields an error message on failure.
 	local ok, err = pcall(stage.callback :: (any, Phase) -> any, context, phase)
+
 	if not ok then
 		warn(string.format("[Bloom.Pipeline] Stage '%s' failed during '%s': %s", stage.name, phase, tostring(err)))
 	end
@@ -128,7 +128,6 @@ pipeline.Run = function(self: Pipeline, context: any, phase: Phase): ()
 		return
 	end
 
-	-- Iterate over a snapshot so a stage may register or remove stages safely.
 	for _, stage in table.clone(self.stages) do
 		if stage.enabled then
 			run_stage(stage, context, phase)

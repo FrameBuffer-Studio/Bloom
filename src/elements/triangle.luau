@@ -17,7 +17,6 @@ local function by_y_then_x(a: Point, b: Point): boolean
 	return a.y < b.y
 end
 
--- X coordinate where the edge a→b crosses row `y`, or nil when the edge does not span that row.
 local function edge_intersection(a: Point, b: Point, y: number): number?
 	if a.y == b.y or y < a.y or y > b.y then
 		return nil
@@ -55,7 +54,6 @@ triangle.DrawTriangle = function(
 	table.sort(points, by_y_then_x)
 	local top, middle, bottom = points[1], points[2], points[3]
 
-	-- Degenerate triangle: all vertices on one row.
 	if top.y == bottom.y then
 		line.DrawHorizontalLine(self, top.x, top.y, bottom.x, color32)
 		return

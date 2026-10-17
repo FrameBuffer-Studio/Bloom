@@ -57,14 +57,9 @@ local DEFAULT_AGING_INTERVAL = 0.25
 local DEFAULT_MAX_TASKS_PER_STEP = 256
 local QUEUE_COMPACT_THRESHOLD = 128
 
--- Unique value passed through coroutine.yield() to tell a cooperative yield apart from
--- an engine yield such as task.wait().
 local YIELD_TOKEN = table.freeze({})
 
--- Thread of the task currently being resumed by any scheduler; used to validate Async.Yield().
 local current_task_thread: thread? = nil
-
--- Task handle methods ------------------------------------------------------------------
 
 local task_methods = {}
 task_methods.__index = task_methods
@@ -87,8 +82,6 @@ task_methods.IsFinished = function(self: Task): boolean
 	return self.state == "completed" or self.state == "cancelled" or self.state == "failed"
 end
 
--- Queue helpers ------------------------------------------------------------------------
-
 local function create_queue(): Queue
 	return { items = {}, head = 1, tail = 0 }
 end
@@ -108,7 +101,6 @@ local function peek(queue: Queue): Task?
 	return queue.items[queue.head]
 end
 
--- Moves live items to the front of the array so the head index does not grow forever.
 local function compact(queue: Queue): ()
 	local compacted: { Task? } = {}
 	local count = 0
@@ -144,10 +136,6 @@ local function dequeue(queue: Queue): Task?
 	return nil
 end
 
--- Scheduling ---------------------------------------------------------------------------
-
--- Lower is more urgent. Waiting work gains one priority level per `aging_interval`,
--- and an expired deadline jumps ahead of every regular priority.
 local function effective_score(item: Task, now: number, aging_interval: number): number
 	local age_bonus = math.floor(math.max(0, now - item.submitted_at) / aging_interval)
 	local score = item.priority - age_bonus
@@ -174,7 +162,6 @@ local function fail(self: Scheduler, item: Task, message: string): ()
 	warn("[Bloom.Async] Task failed: " .. message)
 end
 
--- Removes cancelled tasks from the head of a queue and returns the first runnable one.
 local function drop_cancelled_head(self: Scheduler, queue: Queue): Task?
 	local candidate = peek(queue)
 
@@ -244,8 +231,6 @@ local function resume(self: Scheduler, item: Task): ()
 		fail(self, item, "Task yielded outside Async.Yield(); scheduler callbacks must use cooperative yielding only")
 	end
 end
-
--- Public API ---------------------------------------------------------------------------
 
 --[=[
 	Creates a scheduler.
@@ -331,7 +316,12 @@ end
 	@param ... any -- Arguments forwarded unchanged.
 	@return Task
 ]=]
-async.SubmitWithOptions = function(self: Scheduler, callback: (...any) -> ...any, options: Types.SubmitOptions, ...: any): Task
+async.SubmitWithOptions = function(
+	self: Scheduler,
+	callback: (...any) -> ...any,
+	options: Types.SubmitOptions,
+	...: any
+): Task
 	return submit(self, callback, options, ...)
 end
 

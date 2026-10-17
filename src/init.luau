@@ -1,17 +1,14 @@
 --[[
-        ▓▓▓▓▓▓▓▓▓▓▒▒░   ░▓██▓
-        ████▓▓▓▓▓████▓░ ░▓██▓
-        ███▓░     ▒███▒ ░▓██▓
-        ███▓░     ▒███▒ ░▓██▓    ▒▓██████▓▒░      ▒▓██████▓▒    ▒███▓▓█████▓░░▒▓█████▓░
-        ████▓▓▓▓▓███▒░  ░▓██▓  ▒████▒▒▒▒████▒  ░▓███▓▒▒▒▓███▓░  ▒████▓▒▒▒▓█████▓▒▒▒▓███▓
-        ████▓▒▒▒▓▓██▓▒░ ░▓██▓░░▓██▓░     ▒███▓ ░███▒      ▒███▒ ▒███▒    ░▓██▓▒    ░▓███
-        ███▓░     ░▓██▓░░▓██▓░▒███▒      ░███▓░▒██▓░      ▒███▒ ▒███▒     ▒██▓░    ░▓███
-        ███▓░     ░▓██▓░░▓██▓ ░▓██▓░     ▒███▒ ░███▓      ▓███▒ ▒███▒     ▒██▓░    ░▓███
-        ████▓▒▒▒▓▓████▒ ░▓██▓  ░▓███▓▒▒▓████▒   ▒████▓▒▒▓███▓░  ▒███▒     ▒██▓░    ░▓███
-        █████████▓▓▓░   ░▓▓█▓    ░▒▓█████▓▒░      ▒▓█████▓▒░    ▒▓▓▓░     ▒▓█▒░     ▒▓██
+	██████╗ ██╗      ██████╗  ██████╗ ███╗   ███╗
+	██╔══██╗██║     ██╔═══██╗██╔═══██╗████╗ ████║
+	██████╔╝██║     ██║   ██║██║   ██║██╔████╔██║
+	██╔══██╗██║     ██║   ██║██║   ██║██║╚██╔╝██║
+	██████╔╝███████╗╚██████╔╝╚██████╔╝██║ ╚═╝ ██║
+	╚═════╝ ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝     ╚═╝
 
-                         Low-level graphics library for EditableImage
+	Low-level graphics library for EditableImage
 ]]
+
 --!native
 --!optimize 2
 --!strict
@@ -47,7 +44,7 @@ local asset_service = game:GetService("AssetService")
 --[=[
 	@class Bloom
 
-	Low-level CPU rasterizer that presents an RGBA `buffer` through `EditableImage` tiles.
+	Low-level graphics library that presents an RGBA `buffer` through `EditableImage` tiles.
 ]=]
 local bloom = {}
 bloom.__index = bloom
@@ -78,13 +75,20 @@ local function validate_resolution(resolution: Vector2, caller: string): (number
 end
 
 local function create_editable_image(width: number, height: number): EditableImage
-	-- AssetService returns nil when the device's editable memory budget is exhausted.
 	local editable: EditableImage? = asset_service:CreateEditableImage({ Size = Vector2.new(width, height) })
+
 	assert(editable, `Bloom: EditableImage memory budget is exhausted ({width}x{height} tile)`)
 	return editable
 end
 
-local function create_tile_label(self: Context, editable: EditableImage, x: number, y: number, width: number, height: number): ImageLabel?
+local function create_tile_label(
+	self: Context,
+	editable: EditableImage,
+	x: number,
+	y: number,
+	width: number,
+	height: number
+): ImageLabel?
 	local reference = self.reference
 	if reference == nil then
 		return nil
@@ -95,7 +99,7 @@ local function create_tile_label(self: Context, editable: EditableImage, x: numb
 	image.Position = UDim2.fromOffset(x, y)
 	image.ImageContent = Content.fromObject(editable)
 	image.Visible = true
-	image.Parent = self.parent -- Parent last, after all properties are set.
+	image.Parent = self.parent
 	return image
 end
 
@@ -117,7 +121,7 @@ end
 
 local function create_resources(self: Context): ()
 	local tile_size = self.tile_size
-	self.size_x = -(-self.res_x // tile_size) -- ceil division
+	self.size_x = -(-self.res_x // tile_size)
 	self.size_y = -(-self.res_y // tile_size)
 
 	local ok, err = pcall(function()
@@ -151,7 +155,6 @@ local function create_resources(self: Context): ()
 	end)
 
 	if not ok then
-		-- Release the tiles created before the failure so no EditableImage memory leaks.
 		destroy_resources(self)
 		error(err, 0)
 	end
@@ -195,8 +198,6 @@ local function new_context(res_x: number, res_y: number, tile_size: number, opti
 	return setmetatable(self, bloom) :: any
 end
 
--- Construction -------------------------------------------------------------------------
-
 --[=[
 	Creates a Bloom context. Pass `parent` and `reference` to display the framebuffer:
 	`reference` is cloned once per tile and the clones are parented to `parent`.
@@ -210,7 +211,12 @@ end
 	@param options Options? -- `tile_size`, `async_budget`, `scheduler_options`, `auto_clip`, `clear_color`.
 	@return Bloom
 ]=]
-bloom.Create = function(resolution: Vector2, parent: Instance?, reference: ImageLabel?, options: Types.BloomOptions?): Context
+bloom.Create = function(
+	resolution: Vector2,
+	parent: Instance?,
+	reference: ImageLabel?,
+	options: Types.BloomOptions?
+): Context
 	local settings: Types.BloomOptions = options or {}
 	local res_x, res_y = validate_resolution(resolution, "Bloom.Create")
 	support.Assert()
@@ -220,7 +226,6 @@ bloom.Create = function(resolution: Vector2, parent: Instance?, reference: Image
 	self.parent = parent
 	self.reference = reference
 
-	-- Only GuiObjects have ClipsDescendants; a ScreenGui (LayerCollector) does not.
 	if self.auto_clip and parent ~= nil and parent:IsA("GuiObject") then
 		parent.ClipsDescendants = true
 	end
@@ -250,7 +255,6 @@ bloom.FromEditableImage = function(editable_image: EditableImage, holder: ImageL
 	self.size_x, self.size_y = 1, 1
 	self._owns_resources = false
 
-	-- ReadPixelsBuffer returns a fresh buffer of exactly res_x * res_y * 4 bytes.
 	self.pixel_buffer = editable_image:ReadPixelsBuffer(Vector2.zero, size)
 	self.editables[0] = editable_image
 	self.images[0] = holder
@@ -266,8 +270,6 @@ bloom.FromEditableImage = function(editable_image: EditableImage, holder: ImageL
 
 	return self
 end
-
--- Dirty tracking -----------------------------------------------------------------------
 
 --[=[
 	@private
@@ -314,8 +316,6 @@ bloom.MarkDirty = function(self: Context, x0: number, y0: number, x1: number, y1
 	self:_MarkDirtyRect(x0, y0, x1, y1)
 end
 
--- Presentation -------------------------------------------------------------------------
-
 -- Copies the tile's region of the framebuffer into its staging buffer.
 local function copy_tile_pixels(self: Context, tile: Types.Tile): ()
 	local source_stride = self.res_x * BYTES_PER_PIXEL
@@ -323,7 +323,6 @@ local function copy_tile_pixels(self: Context, tile: Types.Tile): ()
 	local source_offset = (tile.y * self.res_x + tile.x) * BYTES_PER_PIXEL
 
 	if tile_stride == source_stride then
-		-- Full-width tile: its rows are contiguous in the framebuffer.
 		buffer.copy(tile.buffer, 0, self.pixel_buffer, source_offset, tile_stride * tile.h)
 		return
 	end
@@ -435,9 +434,6 @@ bloom.UpdateAsync = function(self: Context, budget: number?): ()
 	self.async:Start()
 end
 
--- Frame and state ----------------------------------------------------------------------
-
--- Returns one framebuffer row filled with `color`, cached until the color or width changes.
 local function get_clear_row(self: Context, color: number): buffer
 	local cached = self._clear_row_buffer
 	if cached ~= nil and self._clear_row_color == color then
@@ -609,8 +605,6 @@ bloom.GetBuffer = function(self: Context): buffer
 	return self.pixel_buffer
 end
 
--- Pipeline and scheduler ---------------------------------------------------------------
-
 --[=[
 	Registers a pipeline stage. Lower `order` values run first.
 
@@ -655,11 +649,14 @@ end
 	@param ... any -- Arguments forwarded to the callback.
 	@return Task
 ]=]
-bloom.SubmitWithOptions = function(self: Context, callback: (...any) -> (), options: Types.SubmitOptions, ...: any): Types.Task
+bloom.SubmitWithOptions = function(
+	self: Context,
+	callback: (...any) -> (),
+	options: Types.SubmitOptions,
+	...: any
+): Types.Task
 	return self.async:SubmitWithOptions(callback, options, ...)
 end
-
--- Statistics ---------------------------------------------------------------------------
 
 --[=[
 	Returns a snapshot of the performance counters.
@@ -699,8 +696,6 @@ bloom.ResetStats = function(self: Context): ()
 	self.stats = new_stats()
 end
 
--- Lifetime -----------------------------------------------------------------------------
-
 --[=[
 	Stops the scheduler and releases owned EditableImages and cloned ImageLabels.
 	A destroyed context cannot be reused.
@@ -718,8 +713,6 @@ bloom.Destroy = function(self: Context): ()
 	self._pending_uploads = 0
 	destroy_resources(self)
 end
-
--- Modules and drawing API --------------------------------------------------------------
 
 --[=[
 	Checks whether EditableImage can be used in this experience without creating a context.

@@ -10,10 +10,8 @@ type BrushSample = { x: number, y: number, alpha: number }
 
 local line = {}
 
--- Soft round brushes keyed by radius, built once and reused by DrawLineAA.
 local brush_cache: { [number]: { BrushSample } } = {}
 
--- Per-call scratch map of pixel offset -> highest brush coverage, reused to avoid allocations.
 local coverage_scratch: { [number]: number } = {}
 
 local function viewport_bounds(context: Context): (number, number, number, number)
@@ -25,7 +23,6 @@ local function viewport_bounds(context: Context): (number, number, number, numbe
 	return left, top, right, bottom
 end
 
--- One Liang–Barsky clipping test. Returns whether the segment is still visible and the updated range.
 local function clip_test(p: number, q: number, t0: number, t1: number): (boolean, number, number)
 	if p == 0 then
 		return q >= 0, t0, t1
@@ -45,8 +42,13 @@ local function clip_test(p: number, q: number, t0: number, t1: number): (boolean
 	return true, t0, math.min(t1, ratio)
 end
 
--- Clips a segment to the viewport. Returns nil when it is entirely outside.
-local function clip_line(context: Context, x0: number, y0: number, x1: number, y1: number): (number?, number?, number?, number?)
+local function clip_line(
+	context: Context,
+	x0: number,
+	y0: number,
+	x1: number,
+	y1: number
+): (number?, number?, number?, number?)
 	local left, top, right, bottom = viewport_bounds(context)
 	local dx, dy = x1 - x0, y1 - y0
 	local t0, t1 = 0, 1
@@ -177,7 +179,6 @@ line.DrawLineAA = function(
 	local length_x, length_y = clipped_x1 - clipped_x0, clipped_y1 - clipped_y0
 	local steps = math.ceil(math.max(math.abs(length_x), math.abs(length_y)))
 
-	-- Pass 1: collect the highest coverage per pixel.
 	local coverage = coverage_scratch
 	for step = 0, steps do
 		local t = if steps == 0 then 0 else step / steps
@@ -196,7 +197,6 @@ line.DrawLineAA = function(
 		end
 	end
 
-	-- Pass 2: blend every covered pixel exactly once.
 	local pixels = self.pixel_buffer
 	local base_rgb = bit32.band(color32, 0x00FFFFFF)
 	local color_alpha = bit32.extract(color32, 24, 8)

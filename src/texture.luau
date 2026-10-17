@@ -5,7 +5,7 @@
 --[=[
 	@class Texture
 
-	CPU-side RGBA texture backed by a Luau `buffer`. Pixel coordinates are 1-based.
+	RGBA texture backed by a Luau `buffer`. Pixel coordinates are 1-based.
 ]=]
 
 local Types = require("./types")
@@ -161,13 +161,11 @@ local function draw_region(
 		return 0, 0, -1, -1
 	end
 
-	-- Source rectangle, clipped once to the texture so the pixel loop needs no bounds checks.
 	local source_x = math.clamp(math.floor(settings.source_x or 1), 1, source.width)
 	local source_y = math.clamp(math.floor(settings.source_y or 1), 1, source.height)
 	local source_w = math.clamp(math.floor(settings.source_width or source.width), 1, source.width - source_x + 1)
 	local source_h = math.clamp(math.floor(settings.source_height or source.height), 1, source.height - source_y + 1)
 
-	-- Destination rectangle, clipped to the viewport and framebuffer.
 	local viewport = context.state.viewport
 	local left = math.max(1, viewport.x, x)
 	local top = math.max(1, viewport.y, y)
@@ -242,7 +240,6 @@ texture.Draw = function(
 	draw_region(context, source, x, y, width or source.width, height or source.height, options, true)
 end
 
--- Internal: used by bitmap fonts to batch dirty-region tracking.
 texture._DrawRegion = draw_region
 
 return texture

@@ -1,4 +1,5 @@
 build
+site
 wally.lock
 node_modules/
 dist/
