@@ -53,25 +53,26 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: [build, docker]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: site
           path: web
-      - name: Publish to gh-pages
+      - name: Publish to framebuffer-studio.github.io/Bloom
         env:
-          TOKEN: ${{ github.token }}
+          TOKEN: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+          TARGET: FrameBuffer-Studio/framebuffer-studio.github.io
+          FOLDER: Bloom
         run: |
-          remote="https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          if git clone --quiet --depth 1 --branch gh-pages "$remote" pages; then
-            find pages -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-          else
-            git init --quiet --initial-branch gh-pages pages
-            git -C pages remote add origin "$remote"
+          if [ -z "$TOKEN" ]; then
+            echo "::notice::PAGES_DEPLOY_TOKEN is not set, skipping deploy"
+            exit 0
           fi
-          cp -a web/. pages/
+          git clone --quiet --depth 1 "https://x-access-token:${TOKEN}@github.com/${TARGET}.git" pages
+          rm -rf "pages/${FOLDER}"
+          mkdir -p "pages/${FOLDER}"
+          cp -a web/. "pages/${FOLDER}/"
+          rm -f "pages/${FOLDER}/.nojekyll"
           cd pages
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -80,5 +81,5 @@ jobs:
             echo "Site is already up to date"
             exit 0
           fi
-          git commit --quiet --message "Deploy site from ${GITHUB_SHA::7}"
-          git push --quiet origin HEAD:gh-pages
+          git commit --quiet --message "Deploy Bloom docs from ${GITHUB_REPOSITORY}@${GITHUB_SHA::7}"
+          git push --quiet origin HEAD

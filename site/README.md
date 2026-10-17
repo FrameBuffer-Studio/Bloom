@@ -105,17 +105,17 @@ docker compose -f site/compose.yaml up --build
 
 ## GitHub Pages
 
-Сайт опубликован на **https://framebuffer-studio.github.io/Bloom/**.
+Сайт опубликован на **https://framebuffer-studio.github.io/Bloom/**. Файлы лежат в папке `Bloom/` репозитория [FrameBuffer-Studio/framebuffer-studio.github.io](https://github.com/FrameBuffer-Studio/framebuffer-studio.github.io).
 
 Workflow `.github/workflows/site.yml` при каждом push в `main` делает следующее:
 
 1. запускает `npm audit`, typecheck и тесты;
 2. собирает сайт и Docker-образ;
-3. кладёт `site/dist/web` в ветку `gh-pages`.
+3. кладёт `site/dist/web` в папку `Bloom/` репозитория `framebuffer-studio.github.io`.
 
-GitHub Pages должен раздавать ветку `gh-pages`: **Settings → Pages → Branch: gh-pages / (root)**.
+Для третьего шага нужен секрет `PAGES_DEPLOY_TOKEN` в настройках репозитория Bloom. Это fine-grained токен с доступом **Contents: Read and write** только к репозиторию `framebuffer-studio.github.io`. Без секрета шаг публикации пропускается, а проверки и сборка всё равно работают.
 
-Все пути на сайте относительные, а навигация идёт через hash (`#/canvas/bloom-create`), поэтому сайт работает и в подпапке `/Bloom/`.
+Все пути на сайте относительные, а навигация идёт через hash (`#/canvas/bloom-create`), поэтому сайт работает в подпапке `/Bloom/`.
 
 ## API
 
