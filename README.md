@@ -1,6 +1,6 @@
 # Bloom
 
-Bloom is a CPU-side rasterizer for Roblox built around `EditableImage` and `buffer`. The API is inspired by OpenGL's context/state/pipeline model, but it does **not** run GPU shaders. It keeps RGBA pixels in a Luau buffer and uploads changed regions to Roblox `EditableImage` objects.
+Bloom is a low-level graphics library for Roblox built around `EditableImage` and `buffer`. The API is inspired by OpenGL's context/state/pipeline model, but it does **not** run GPU shaders. It keeps RGBA pixels in a Luau buffer and uploads changed regions to Roblox `EditableImage` objects.
 
 ## Quick start
 
