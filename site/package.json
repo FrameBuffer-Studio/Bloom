@@ -1,0 +1,23 @@
+{
+  "name": "bloom-docs-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node scripts/build.ts",
+    "dev": "node scripts/build.ts --watch",
+    "start": "node dist/server/server.mjs",
+    "typecheck": "tsc -p frontend && tsc -p backend && tsc -p scripts && tsc -p tests",
+    "test": "node --test \"tests/**/*.test.ts\"",
+    "check": "npm run typecheck && npm test",
+    "audit": "npm audit --audit-level=low"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2"
+  }
+}

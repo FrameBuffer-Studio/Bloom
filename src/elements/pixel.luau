@@ -2,64 +2,85 @@
 --!optimize 2
 --!strict
 
-return {
-    --[=[
-        <strong>Bloom/Pixel/Draw</strong>
+local Types = require("../types")
+type Context = Types.self
 
-        Draw pixel at coordinates X and Y.
+local pixel = {}
 
-        @param x number -- Point by X-coordinate.
-        @param y number -- Point by Y-coordinate.
-        @param color32 number -- 32-bit number represent of RGBA color.
+local function pixel_offset(context: Context, x: number, y: number): number
+	return ((y - 1) * context.res_x + (x - 1)) * 4
+end
 
-        @error nil -- If not bound X or Y.
-    ]=]
-	DrawPixel = function(self, x: number, y: number, color32: number): ()
-        if x < 1 or x > self.res_x or y < 1 or y > self.res_y then return end
-	    buffer.writeu32(self.pixel_buffer, ((x - 1) + (y - 1) * self.res_x) * 4, color32)
-    end,
+local function is_inside_viewport(context: Context, x: number, y: number): boolean
+	local viewport = context.state.viewport
+	return x >= viewport.x and x < viewport.x + viewport.w and y >= viewport.y and y < viewport.y + viewport.h
+end
 
-    --[=[
-        <strong>Bloom/Pixel/Read</strong>
+local function is_inside_framebuffer(context: Context, x: number, y: number): boolean
+	return x >= 1 and x <= context.res_x and y >= 1 and y <= context.res_y
+end
 
-        Read a pixel from pixel buffer at coordinates X and Y.
+--[=[
+	Draws one pixel. Coordinates outside the viewport or framebuffer are ignored.
 
-        @param x number -- Point by X-coordinate.
-        @param y number -- Point by Y-coordinate.
+	@within Bloom
+	@param x number -- 1-based column.
+	@param y number -- 1-based row.
+	@param color32 number -- Packed RGBA color.
+]=]
+pixel.DrawPixel = function(self: Context, x: number, y: number, color32: number): ()
+	x, y = math.floor(x), math.floor(y)
+	if not is_inside_viewport(self, x, y) or not is_inside_framebuffer(self, x, y) then
+		return
+	end
 
-        @return number -- 32-bit number represent of RGBA color.
+	buffer.writeu32(self.pixel_buffer, pixel_offset(self, x, y), color32)
+	self:_MarkDirty(x, y)
+end
 
-        @error number -- If not bound X or Y.
-    ]=]
-    ReadPixel = function(self, x: number, y: number): number
-        if x < 1 or x > self.res_x or y < 1 or y > self.res_y then return 0 end
-        return buffer.readu32(self.pixel_buffer, ((x - 1) + (y - 1) * self.res_x) * 4)
-    end,
+--[=[
+	Reads one pixel. Returns `0` outside the framebuffer.
 
-    --[=[
-        <strong>Bloom/Pixel/DrawUnsafe</strong>
+	@within Bloom
+	@param x number -- 1-based column.
+	@param y number -- 1-based row.
+	@return number -- Packed RGBA color.
+]=]
+pixel.ReadPixel = function(self: Context, x: number, y: number): number
+	x, y = math.floor(x), math.floor(y)
+	if not is_inside_framebuffer(self, x, y) then
+		return 0
+	end
 
-        Draw pixel at coordinates X and Y, without bounds checking.
+	return buffer.readu32(self.pixel_buffer, pixel_offset(self, x, y))
+end
 
-        @param x number -- Point by X-coordinate.
-        @param y number -- Point by Y-coordinate.
-        @param color32 number -- 32-bit number represent of RGBA color.
-    ]=]
-    DrawPixelUnsafe = function(self, x: number, y: number, color32: number): ()
-        buffer.writeu32(self.pixel_buffer, ((x - 1) + (y - 1) * self.res_x) * 4, color32)
-    end,
+--[=[
+	Draws a pixel without bounds checks. `x` and `y` must be integers inside the framebuffer.
 
-    --[=[
-        <strong>Bloom/Pixel/ReadUnsafe</strong>
+	@within Bloom
+	@param x number
+	@param y number
+	@param color32 number
+]=]
+pixel.DrawPixelUnsafe = function(self: Context, x: number, y: number, color32: number): ()
+	buffer.writeu32(self.pixel_buffer, pixel_offset(self, x, y), color32)
 
-        Read a pixel from pixel buffer at coordinates X and Y, without bounds checking.
+	local tile_x = (x - 1) // self.tile_size
+	local tile_y = (y - 1) // self.tile_size
+	self._dirty_tiles[tile_x + tile_y * self.size_x] = true
+end
 
-        @param x number -- Point by X-coordinate.
-        @param y number -- Point by Y-coordinate.
+--[=[
+	Reads a pixel without bounds checks. `x` and `y` must be integers inside the framebuffer.
 
-        @return number -- 32-bit number represent of RGBA color.
-    ]=]
-    ReadPixelUnsafe = function(self, x: number, y: number): number
-        return buffer.readu32(self.pixel_buffer, ((x - 1) + (y - 1) * self.res_x) * 4)
-    end,
-}
+	@within Bloom
+	@param x number
+	@param y number
+	@return number
+]=]
+pixel.ReadPixelUnsafe = function(self: Context, x: number, y: number): number
+	return buffer.readu32(self.pixel_buffer, pixel_offset(self, x, y))
+end
+
+return pixel

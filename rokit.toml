@@ -1,0 +1,6 @@
+# This file lists tools managed by Rokit, a toolchain manager for Roblox projects.
+# For more information, see https://github.com/rojo-rbx/rokit
+
+[tools]
+lune = "lune-org/lune@0.10.5"
+luau-lsp = "JohnnyMorganz/luau-lsp@1.70.1"

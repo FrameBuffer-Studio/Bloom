@@ -2,225 +2,216 @@
 --!native
 --!optimize 2
 
-
 --[=[
 	@class Color4
 
-	Class created for easy working and manipulating with colors.
-
-	Foundation for `Bloom`.
+	RGBA color helpers. Bloom stores pixels as packed 32-bit integers in the same byte
+	order that `EditableImage:ReadPixelsBuffer()` and `WritePixelsBuffer()` use:
+	red in the lowest byte, alpha in the highest (`0xAABBGGRR`).
 ]=]
 local Color4 = {}
 Color4.__index = Color4
 
 export type Color4 = {
-    R: number,
-    G: number,
-    B: number,
-    A: number,
+	R: number,
+	G: number,
+	B: number,
+	A: number,
 
-    To32Bit: (self: Color4) -> number,
-    Lerp: (self: Color4, other: Color4, t: number) -> Color4,
+	To32Bit: (self: Color4) -> number,
+	Lerp: (self: Color4, other: Color4, t: number) -> Color4,
 }
 
+local function to_byte(value: number): number
+	return math.clamp(math.floor(value + 0.5), 0, 255)
+end
+
+local function pack(r: number, g: number, b: number, a: number): number
+	return bit32.bor(
+		bit32.band(r, 0xFF),
+		bit32.lshift(bit32.band(g, 0xFF), 8),
+		bit32.lshift(bit32.band(b, 0xFF), 16),
+		bit32.lshift(bit32.band(a, 0xFF), 24)
+	)
+end
+
+local function mix_channel(
+	source: number,
+	destination: number,
+	shift: number,
+	source_alpha: number,
+	destination_weight: number,
+	out_alpha: number
+): number
+	local source_channel = bit32.extract(source, shift, 8)
+	local destination_channel = bit32.extract(destination, shift, 8)
+
+	return math.floor((source_channel * source_alpha + destination_channel * destination_weight) / out_alpha + 0.5)
+end
+
 --[=[
-	<strong>Bloom/Color4/New</strong>
+	Creates a `Color4` object. Channels are rounded and clamped to 0..255.
 
-	Creates a new `Color4` object with RGBA channels.
-
+	@within Color4
 	@param R number -- Red.
 	@param G number -- Green.
 	@param B number -- Blue.
-	@param A number -- Alpha.
-
-	@within Color4
-
+	@param A number? -- Alpha. Defaults to 255 (opaque).
 	@return Color4
 ]=]
-Color4.New = function(R: number, G: number, B: number, A: number): Color4
-	local self = setmetatable({}, Color4)
-
-	self.R = math.clamp(R or 0, 0, 255)
-	self.G = math.clamp(G or 0, 0, 255)
-	self.B = math.clamp(B or 0, 0, 255)
-	self.A = math.clamp(A or 255, 0, 255)
+Color4.New = function(R: number, G: number, B: number, A: number?): Color4
+	local self = setmetatable({
+		R = to_byte(R),
+		G = to_byte(G),
+		B = to_byte(B),
+		A = to_byte(A or 255),
+	}, Color4)
 
 	return (self :: any) :: Color4
 end
 
 --[=[
-	<strong>Bloom/Color4/New32Bit</strong>
-
-	Return 32-bit number color with RGBA.
-
-	@param R number -- Red.
-	@param G number -- Green.
-	@param B number -- Blue.
-	@param A number -- Alpha.
+	Packs RGBA channels into a 32-bit color.
 
 	@within Color4
-
-	@return number -- 32-bit number represent of RGBA color.
+	@param R number -- Red, 0..255.
+	@param G number -- Green, 0..255.
+	@param B number -- Blue, 0..255.
+	@param A number? -- Alpha, 0..255. Defaults to 255 (opaque).
+	@return number -- Packed RGBA color.
 ]=]
-Color4.New32Bit = function(R: number, G: number, B: number, A: number): number
-	return bit32.bor(
-		bit32.lshift(A or 0, 24),
-		bit32.lshift(B or 0, 16),
-		bit32.lshift(G or 0, 8),
-		R or 0
-	)
+Color4.New32Bit = function(R: number, G: number, B: number, A: number?): number
+	return pack(R, G, B, A or 255)
 end
 
 --[=[
-	<strong>Bloom/Color4/SetR</strong>
-
-	Overwrtie the R channel within the number.
-
-	@param color number -- 32-bit number represent of RGBA color.
-	@param val number -- Value of overwrited color channel.
+	Unpacks a 32-bit color into its channels.
 
 	@within Color4
-
-	@return number -- Overwrited color.
+	@param color number -- Packed RGBA color.
+	@return (number, number, number, number) -- Red, green, blue, alpha.
 ]=]
-Color4.SetR = function(color: number, val: number): number
-	return bit32.bor(
-		bit32.band(color, 0xFFFFFF00),
-		bit32.band(val, 0xFF)
-	)
+Color4.Unpack = function(color: number): (number, number, number, number)
+	return bit32.extract(color, 0, 8), bit32.extract(color, 8, 8), bit32.extract(color, 16, 8), bit32.extract(color, 24, 8)
 end
 
 --[=[
-	<strong>Bloom/Color4/SetG</strong>
-
-	Overwrtie the G channel within the number.
-
-	@param color number -- 32-bit number represent of RGBA color.
-	@param val number -- Value of overwrited color channel.
+	Replaces the red channel of a packed color.
 
 	@within Color4
-
-	@return number -- Overwrited color.
+	@param color number -- Packed RGBA color.
+	@param value number -- New red value, 0..255.
+	@return number
 ]=]
-Color4.SetG = function(color: number, val: number): number
-	return bit32.bor(
-		bit32.band(color, 0xFF00FFFF),
-		bit32.lshift(bit32.band(val, 0xFF), 8)
-	)
+Color4.SetR = function(color: number, value: number): number
+	return bit32.replace(color, value, 0, 8)
 end
 
 --[=[
-	<strong>Bloom/Color4/SetB</strong>
-
-	Overwrtie the B channel within the number.
-
-	@param color number -- 32-bit number represent of RGBA color.
-	@param val number -- Value of overwrited color channel.
+	Replaces the green channel of a packed color.
 
 	@within Color4
-
-	@return number -- Overwrited color.
+	@param color number -- Packed RGBA color.
+	@param value number -- New green value, 0..255.
+	@return number
 ]=]
-Color4.SetB = function(color: number, val: number): number
-	return bit32.bor(
-		bit32.band(color, 0xFFFF00FF),
-		bit32.lshift(bit32.band(val, 0xFF), 16)
-	)
+Color4.SetG = function(color: number, value: number): number
+	return bit32.replace(color, value, 8, 8)
 end
 
 --[=[
-	<strong>Bloom/Color4/SetA</strong>
-
-	Overwrtie the A channel within the number.
-
-	@param color number -- 32-bit number represent of RGBA color.
-	@param val number -- Value of overwrited color channel.
+	Replaces the blue channel of a packed color.
 
 	@within Color4
-
-	@return number -- Overwrited color.
+	@param color number -- Packed RGBA color.
+	@param value number -- New blue value, 0..255.
+	@return number
 ]=]
-Color4.SetA = function(color: number, val: number): number
-	return bit32.bor(
-		bit32.band(color, 0x00FFFFFF),
-		bit32.lshift(bit32.band(val, 0xFF), 24)
-	)
+Color4.SetB = function(color: number, value: number): number
+	return bit32.replace(color, value, 16, 8)
 end
 
 --[=[
-	<strong>Bloom/Color4/To32Bit</strong>
-
-	Convert `Color4` to 32-bit number.
-
-	@param self
+	Replaces the alpha channel of a packed color.
 
 	@within Color4
+	@param color number -- Packed RGBA color.
+	@param value number -- New alpha value, 0..255.
+	@return number
+]=]
+Color4.SetA = function(color: number, value: number): number
+	return bit32.replace(color, value, 24, 8)
+end
 
-	@return number -- 32-bit number represent of RGBA color.
+--[=[
+	Composites `source` over `destination` (straight, non-premultiplied alpha).
+
+	@within Color4
+	@param destination number -- Packed RGBA color already in the framebuffer.
+	@param source number -- Packed RGBA color being drawn.
+	@return number -- Packed RGBA result.
+]=]
+Color4.BlendOver = function(destination: number, source: number): number
+	local source_alpha = bit32.extract(source, 24, 8)
+	if source_alpha == 255 then
+		return source
+	elseif source_alpha == 0 then
+		return destination
+	end
+
+	local destination_alpha = bit32.extract(destination, 24, 8)
+	local destination_weight = destination_alpha * (255 - source_alpha) / 255
+	local out_alpha = source_alpha + destination_weight
+	if out_alpha <= 0 then
+		return 0
+	end
+
+	local r = mix_channel(source, destination, 0, source_alpha, destination_weight, out_alpha)
+	local g = mix_channel(source, destination, 8, source_alpha, destination_weight, out_alpha)
+	local b = mix_channel(source, destination, 16, source_alpha, destination_weight, out_alpha)
+
+	return pack(r, g, b, math.floor(out_alpha + 0.5))
+end
+
+--[=[
+	Converts a `Color4` object to a packed 32-bit color.
+
+	@within Color4
+	@return number -- Packed RGBA color.
 ]=]
 Color4.To32Bit = function(self: Color4): number
-	return bit32.bor(
-		bit32.lshift(self.A, 24),
-		bit32.lshift(self.B, 16),
-		bit32.lshift(self.G, 8),
-		self.R
-	)
+	return pack(self.R, self.G, self.B, self.A)
 end
 
 --[=[
-	<strong>Bloom/Color4/From32Bit</strong>
-
-	Convert 32-bit number to `Color4`.
-
-	@param hex number -- 32-bit number represent of RGBA color.
+	Converts a packed 32-bit color to a `Color4` object.
 
 	@within Color4
-
+	@param color number -- Packed RGBA color.
 	@return Color4
 ]=]
-Color4.From32Bit = function(hex: number): Color4
-	return Color4.New(
-		bit32.extract(hex, 0, 8),
-		bit32.extract(hex, 8, 8),
-		bit32.extract(hex, 16, 8),
-		bit32.extract(hex, 24, 8)
-	)
+Color4.From32Bit = function(color: number): Color4
+	return Color4.New(Color4.Unpack(color))
 end
 
 --[=[
-	<strong>Bloom/Color4/FromColor3</strong>
+	Creates a `Color4` object from a `Color3` (channels 0..1).
 
-	Creates `Color4` object from `Color3`.
-
+	@within Color4
 	@param color Color3
-	@param alpha number -- Alpha of color.
-
-	@within Color4
-
+	@param alpha number? -- Alpha, 0..255. Defaults to 255 (opaque).
 	@return Color4
 ]=]
-Color4.FromColor3 = function(color: Color3, alpha: number): Color4
-	local self = setmetatable({}, Color4)
-
-	self.R = math.clamp(color.R or 0, 0, 255)
-	self.G = math.clamp(color.G or 0, 0, 255)
-	self.B = math.clamp(color.B or 0, 0, 255)
-	self.A = math.clamp(alpha or 255, 0, 255)
-
-	return (self :: any) :: Color4
+Color4.FromColor3 = function(color: Color3, alpha: number?): Color4
+	return Color4.New(color.R * 255, color.G * 255, color.B * 255, alpha)
 end
 
 --[=[
-	<strong>Bloom/Color4/Lerp</strong>
-
-	Interpolate two `Color4` by `t`.
-
-	@param self
-	@param other Color4 -- second color to interpolate
-	@param t number
+	Linearly interpolates between two colors.
 
 	@within Color4
-
+	@param other Color4 -- Target color.
+	@param t number -- Interpolation factor, clamped to 0..1.
 	@return Color4
 ]=]
 Color4.Lerp = function(self: Color4, other: Color4, t: number): Color4
@@ -234,9 +225,11 @@ Color4.Lerp = function(self: Color4, other: Color4, t: number): Color4
 	)
 end
 
---- @prop Zero Color4
---- @within Color4
---- Full transparent color or just 0.
+--[=[
+	@prop Zero number
+	@within Color4
+	Packed fully transparent black (`0`).
+]=]
 Color4.Zero = 0
 
 return Color4
