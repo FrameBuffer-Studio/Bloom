@@ -184,7 +184,7 @@ lune run tests/run
 
 Step-by-step documentation in Russian ([`docs/ru`](docs/ru/README.md)) and English ([`docs/en`](docs/en/README.md)): every function, every option and every possible outcome, plus a full list of error messages ([ru](docs/ru/13-errors.md) · [en](docs/en/13-errors.md)).
 
-The same docs are published as a terminal-style site in [`site/`](site/README.md) with Discord-like slash commands (`/help`, `/canvas`, `/fn DrawLine`, `/search ...`), a RU/EN switch and a credits block filled from `site/credits.json`. It runs as static files on GitHub Pages or with its own backend in Docker.
+The same docs are published at **https://framebuffer-studio.github.io/Bloom/**: a terminal-style site with Discord-like slash commands (`/help`, `/canvas`, `/fn DrawLine`, `/search ...`) and a RU/EN switch. The site is built from this `docs/` folder.
 
 ## Luau types
 

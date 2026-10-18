@@ -1,16 +1,5 @@
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: /site
-    schedule:
-      interval: weekly
-    groups:
-      tooling:
-        patterns: ["*"]
-  - package-ecosystem: docker
-    directory: /site
-    schedule:
-      interval: weekly
   - package-ecosystem: github-actions
     directory: /
     schedule:
