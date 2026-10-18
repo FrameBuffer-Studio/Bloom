@@ -35,7 +35,6 @@ export type UniformMap = Types.Uniforms
 export type Task = Types.Task
 export type SupportReport = support.Report
 
--- EditableImage is limited to 1024x1024, so larger framebuffers are split into tiles.
 local MAX_TILE_SIZE = 1024
 local BYTES_PER_PIXEL = 4
 
@@ -48,8 +47,6 @@ local asset_service = game:GetService("AssetService")
 ]=]
 local bloom = {}
 bloom.__index = bloom
-
--- Resources ----------------------------------------------------------------------------
 
 local function new_stats(): Types.Stats
 	return {

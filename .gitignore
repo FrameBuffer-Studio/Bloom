@@ -4,3 +4,4 @@ wally.lock
 node_modules/
 dist/
 *.log
+.github
